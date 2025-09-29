@@ -42,6 +42,8 @@ body.light{
 .brand{display:flex;align-items:center;gap:12px}
 .logo{font-weight:800;font-size:20px;color:var(--accent-strong)}
 .logo .dna{transform:rotate(12deg); color:var(--accent); margin:0 2px}
+.clickable-logo{transition:transform 0.2s ease, opacity 0.2s ease}
+.clickable-logo:hover{transform:scale(1.05); opacity:0.8}
 .subtitle{font-size:12px;color:var(--muted)}
 .nav-right{display:flex;align-items:center;gap:8px}
 .nav-link{color:var(--muted); text-decoration:none; padding:8px 12px; border-radius:8px; font-weight:700; cursor:pointer}
@@ -86,7 +88,7 @@ h1{ font-size:28px; margin:6px 0 }
 
 /* PIPELINE */
 .pipeline-card{ padding:18px }
-.pipeline-container{ display:flex; gap:18px; align-items:center; justify-content:space-between; flex-wrap:nowrap; overflow:auto; padding-bottom:16px; position:relative; }
+.pipeline-container{ display:flex; gap:18px; align-items:center; justify-content:space-between; flex-wrap:nowrap; overflow:auto; padding-bottom:16px; }
 .step{
   flex:1; min-width:140px; background:linear-gradient(180deg,var(--glass),transparent);
   border-radius:12px; padding:14px; text-align:center; transition:transform .18s, box-shadow .18s, border-color .18s;
@@ -99,8 +101,11 @@ h1{ font-size:28px; margin:6px 0 }
 .step.complete{ border-color: rgba(46,204,113,0.12); box-shadow:none }
 .step.complete .icon{ color:var(--accent-strong) }
 
-/* Add this to your style.css file - Pipeline Train Animation */
-
+/* PROGRESS */
+.pipeline-controls{ display:flex; justify-content:space-between; align-items:center; margin-top:12px; gap:12px }
+.global-progress{ height:12px; background:rgba(255,255,255,0.03); border-radius:10px; overflow:hidden; width:60% }
+.global-progress-fill{ height:100%; width:0%; background:linear-gradient(90deg,var(--accent-strong),var(--accent)); transition:width .4s ease }
+.progress-text{ color:var(--muted); margin-top:8px }
 
 /* RESULTS */
 .results-card{ padding:14px }
@@ -353,11 +358,22 @@ h1{ font-size:28px; margin:6px 0 }
   display: none !important;
 }
 
+/* Species container with scrolling */
+.species-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 16px 0;
+  background: var(--card);
+}
+
 /* Species list styling */
 .species-list {
   list-style: none;
   padding: 0;
-  margin: 16px 0;
+  margin: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 8px;
@@ -431,6 +447,97 @@ h1{ font-size:28px; margin:6px 0 }
   width: 60px;
   height: 2px;
   background: var(--accent-strong);
+}
+
+/* Explanation dropdown styles */
+.explanation-toggle {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.explanation-toggle:hover {
+  color: var(--accent);
+}
+
+.toggle-icon {
+  transition: transform 0.3s ease;
+  font-size: 0.8em;
+  margin-left: auto;
+}
+
+.explanation-content {
+  margin-top: 6px;
+  transition: all 0.3s ease;
+}
+
+.explanation-box {
+  margin-bottom: 12px !important;
+  padding: 12px !important;
+}
+
+.explanation-box h3 {
+  margin: 0 0 4px 0 !important;
+  font-size: 1.1rem !important;
+}
+
+.explanation-box p {
+  margin: 4px 0 !important;
+  line-height: 1.4 !important;
+}
+
+.explanation-box ul {
+  margin: 4px 0 !important;
+  padding-left: 16px !important;
+}
+
+.explanation-box li {
+  margin: 2px 0 !important;
+  line-height: 1.3 !important;
+}
+
+/* Compact spacing for chart explanations */
+.chart-explanations-row {
+  margin-bottom: 10px !important;
+}
+
+.chart-explanation-box {
+  padding: 10px !important;
+}
+
+.chart-explanation-box h4 {
+  margin: 0 0 4px 0 !important;
+  font-size: 0.95rem !important;
+}
+
+.chart-explanation-box p {
+  margin: 3px 0 !important;
+  font-size: 0.85rem !important;
+  line-height: 1.3 !important;
+}
+
+.index-explanations {
+  gap: 8px !important;
+}
+
+.index-explanation {
+  padding: 8px !important;
+}
+
+.index-explanation h4 {
+  margin: 0 0 4px 0 !important;
+  font-size: 0.9rem !important;
+}
+
+.index-explanation p {
+  margin: 0 !important;
+  font-size: 0.8rem !important;
+  line-height: 1.3 !important;
 }
 
 /* helpers */
@@ -1087,57 +1194,12 @@ h1{ font-size:28px; margin:6px 0 }
 @media (max-width:1100px){ #tax-counts-row.tax-cards-row{ grid-template-columns: repeat(3,1fr); } }
 @media (max-width:680px){ #tax-counts-row.tax-cards-row{ grid-template-columns: repeat(2,1fr); gap:12px } #tax-counts-row .tax-card{ padding:14px; min-height:84px } #tax-counts-row .tax-card .tax-num{ font-size:22px } }
 
-/* Override existing pipeline styles to ensure animation works */
-/* ---- Train pipeline visuals (append to style.css) ---- */
-/* ---- Train pipeline visuals (updated spacing & transitions) ---- */
-#pipeline-container.train-container {
-  position: relative;
-  overflow: hidden;
-  height: 150px; /* slightly reduced height */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;               /* REDUCED gap between boxes */
-  padding: 8px 12px;
+#csv-preview-container-analysis table { width:100%; border-collapse:collapse; font-size:13px }
+#csv-preview-container-analysis th, #csv-preview-container-analysis td {
+  padding:8px 10px; border-bottom:1px solid rgba(255,255,255,0.04); text-align:left;
 }
-
-.pipeline-step {
-  position: relative;
-  min-width: 160px;       /* slightly smaller */
-  max-width: 220px;       /* slightly smaller */
-  padding: 12px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(139,99,255,0.06), rgba(255,255,255,0.02));
-  border: 1px solid rgba(139,99,255,0.10);
-  text-align: center;
-  box-shadow: 0 8px 18px rgba(2,4,8,0.30);
-  transition: transform 420ms cubic-bezier(.2,.9,.3,1), box-shadow 280ms, opacity 240ms;
-  will-change: transform;
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  margin: 0 4px;
+#csv-preview-container-analysis thead th {
+  position: sticky; top:0; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  z-index:2; font-weight:700; color:var(--accent-strong);
 }
-
-.pipeline-step .step-icon { font-size: 26px; color: #8b63ff; margin-bottom: 6px; }
-.pipeline-step h4 { margin: 0; font-size: 0.98rem; color: var(--white); }
-.pipeline-step .step-status { margin-top: 6px; color: var(--muted); font-size: 0.88rem; }
-
-/* active (center) and completed states */
-.pipeline-step.active {
-  transform-origin: center;
-  box-shadow: 0 20px 44px rgba(139,99,255,0.32);
-  border-color: rgba(139,99,255,0.26);
-}
-.pipeline-step.completed {
-  background: linear-gradient(135deg, rgba(46,204,113,0.07), rgba(255,255,255,0.02));
-  border-color: rgba(46,204,113,0.16);
-  opacity: 0.95;
-}
-
-/* reduce visible overflow on small screens */
-@media (max-width: 768px) {
-  #pipeline-container.train-container { height: 220px; gap: 6px; }
-  .pipeline-step { min-width: 180px; max-width: 220px; padding: 14px; }
-}
+#csv-preview-container-analysis .muted { color: var(--muted); }
