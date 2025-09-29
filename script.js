@@ -1,4 +1,4 @@
-// script.js — Train-style pipeline with 7 boxes (replace your existing script.js)
+// script-fixed.js — corrected and theme-safe version of your pipeline script
 
 // --------------------- Helper / config ---------------------
 const DUMMY = {
@@ -78,6 +78,13 @@ function randChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 function randFloat(min,max,dec=4){ return (Math.random()*(max-min)+min).toFixed(dec); }
 function randSeq(len=60){ const bases=['A','T','C','G']; let s=''; for(let i=0;i<len;i++) s+=randChoice(bases); return s; }
+
+function getTextColor() {
+  return document.body.classList.contains('light') ? '#0b1220' : '#ffffff';
+}
+function getPanelBg() {
+  return document.body.classList.contains('light') ? '#ffffff' : '#1a1a1a';
+}
 
 // CSV maker (same as before)
 function makeCSV(rowsCount = 250) {
@@ -165,18 +172,39 @@ navLinks.forEach(link => {
 function setTheme(isLight) {
   document.body.classList.toggle('light', isLight);
   themeToggle.innerHTML = isLight ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+  // Re-render any UI that depends on theme colors
+  safeRefreshUIForTheme();
 }
 setTheme(false);
 themeToggle.addEventListener('click', () => setTheme(!document.body.classList.contains('light')));
+
+function safeRefreshUIForTheme(){
+  // Update Plotly charts, diversity widgets and CSV preview to ensure text/plot colors update
+  try { renderAbundanceChart(); } catch(e) { console.warn('abundance refresh failed',e); }
+  try { renderUMAPAnimation(); } catch(e) { console.warn('umap refresh failed',e); }
+  try { if (typeof renderDiversityWidgets === 'function') renderDiversityWidgets(); } catch(e) { console.warn('diversity refresh failed',e); }
+  // Update CSV preview styles (if exists)
+  const csvContainer = document.getElementById('csv-preview-container-analysis');
+  if (csvContainer) {
+    csvContainer.style.background = getPanelBg();
+    csvContainer.style.color = getTextColor();
+    // update header/text colors inside table
+    const ths = csvContainer.querySelectorAll('th');
+    ths.forEach(th => th.style.color = getTextColor());
+    const tds = csvContainer.querySelectorAll('td');
+    tds.forEach(td => td.style.color = getTextColor());
+  }
+}
 
 // --------------------- File upload UI ---------------------
 let uploadedFiles = [];
 
 function renderFileList() {
+  if (!fileList) return;
   fileList.innerHTML = '';
   if (uploadedFiles.length === 0) {
     fileList.innerHTML = '<p class="muted">No files selected.</p>';
-    startAnalysisBtn.disabled = true;
+    startAnalysisBtn && (startAnalysisBtn.disabled = true);
     if (statSamples) statSamples.textContent = '0';
     return;
   }
@@ -190,7 +218,7 @@ function renderFileList() {
     ul.appendChild(li);
   });
   fileList.appendChild(ul);
-  startAnalysisBtn.disabled = false;
+  startAnalysisBtn && (startAnalysisBtn.disabled = false);
   if (statSamples) statSamples.textContent = String(uploadedFiles.length);
   fileList.querySelectorAll('.remove-file').forEach(b => {
     b.addEventListener('click', () => {
@@ -201,15 +229,16 @@ function renderFileList() {
   });
 }
 
-browseBtn.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (e) => { uploadedFiles = Array.from(e.target.files); renderFileList(); });
-dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); uploadedFiles = Array.from(e.dataTransfer.files); renderFileList(); });
-clearFilesBtn.addEventListener('click', () => { uploadedFiles = []; fileInput.value = ''; renderFileList(); });
+browseBtn && browseBtn.addEventListener('click', () => fileInput && fileInput.click());
+fileInput && fileInput.addEventListener('change', (e) => { uploadedFiles = Array.from(e.target.files); renderFileList(); });
+dropzone && dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone && dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone && dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); uploadedFiles = Array.from(e.dataTransfer.files); renderFileList(); });
+clearFilesBtn && clearFilesBtn.addEventListener('click', () => { uploadedFiles = []; if (fileInput) fileInput.value = ''; renderFileList(); });
 
 // --------------------- Build visual pipeline (7 boxes) ---------------------
 function buildVisualPipeline() {
+  if (!pipelineContainer) return;
   // Clear existing children (keeps other nodes in pipeline-container safe)
   pipelineContainer.innerHTML = '';
   pipelineContainer.classList.add('train-container');
@@ -242,18 +271,14 @@ if (pipelineContainer) {
 }
 
 // Positioning logic: spacing and center index
-// ---------- positionTrain (updated spacing / smaller gap) ----------
 function positionTrain(activeIndex, transitionMs = 420) {
+  if (!pipelineContainer) return;
   const cars = Array.from(pipelineContainer.querySelectorAll('.pipeline-step'));
   const count = cars.length;
   const containerWidth = pipelineContainer.clientWidth || 900;
 
-  // reduced spacing so boxes are closer together
-  // ensure spacing is not too tiny on narrow screens
   const spacing = Math.min(160, Math.max(100, Math.floor(containerWidth / Math.max(5, count + 1))));
 
-  // compute translate offsets relative to center
-  // the center car (activeIndex) gets translateX(0)
   cars.forEach((car, idx) => {
     const offsetFromActive = idx - activeIndex;
     const tx = offsetFromActive * spacing;
@@ -261,7 +286,6 @@ function positionTrain(activeIndex, transitionMs = 420) {
     const scale = isActive ? 1.12 : 0.92;
     const z = isActive ? 50 : Math.max(10, 40 - Math.abs(offsetFromActive));
 
-    // set transition only (animation duration is passed in)
     car.style.transition = `transform ${transitionMs}ms cubic-bezier(.2,.9,.3,1), box-shadow 220ms, opacity 220ms`;
     car.style.transform = `translateX(${tx}px) translateY(0px) scale(${scale})`;
     car.style.zIndex = z;
@@ -275,16 +299,14 @@ function positionTrain(activeIndex, transitionMs = 420) {
   });
 }
 
-// ---------- animateToStep (keep center during processing) ----------
 async function animateToStep(stepIndex, durationMs) {
+  if (!pipelineContainer) return;
   const cars = Array.from(pipelineContainer.querySelectorAll('.pipeline-step'));
   if (!cars.length) return;
   stepIndex = Math.max(0, Math.min(cars.length - 1, stepIndex));
   
-  // Position so stepIndex is perfectly centered and remains there for full duration
   positionTrain(stepIndex, 420);
 
-  // Clear active/completed classes first
   cars.forEach((c, idx) => {
     c.classList.remove('active');
     if (idx < stepIndex) c.classList.add('completed');
@@ -294,7 +316,6 @@ async function animateToStep(stepIndex, durationMs) {
   const activeCar = cars[stepIndex];
   if (activeCar) {
     activeCar.classList.add('active');
-    // Add spinning animation to active step icon
     const iconEl = activeCar.querySelector('.step-icon i');
     if (iconEl) {
       iconEl.classList.add('fa-spinner', 'fa-spin');
@@ -302,18 +323,13 @@ async function animateToStep(stepIndex, durationMs) {
     }
   }
 
-  // Smooth scroll into view (non-blocking)
-  try { 
-    activeCar.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); 
-  } catch(e){}
+  try { activeCar && activeCar.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); } catch(e){}
 
-  // Wait for processing duration while supporting pause/resume/cancel
   const start = performance.now();
   let pausedAccum = 0, pauseStart = null;
   
   while (true) {
     if (simState.cancelled) throw new Error('cancelled');
-    
     if (simState.paused) {
       if (!pauseStart) pauseStart = performance.now();
       await new Promise(r => setTimeout(r, 80));
@@ -322,23 +338,20 @@ async function animateToStep(stepIndex, durationMs) {
       pausedAccum += performance.now() - pauseStart;
       pauseStart = null;
     }
-    
     const now = performance.now();
     const elapsed = now - start - pausedAccum;
     const pct = Math.min(1, elapsed / durationMs);
     const globalPct = Math.round(((stepIndex + pct) / PIPE_STEPS.length) * 100);
-    
-    globalProgressFill.style.width = `${globalPct}%`;
-    progressText.textContent = `${PIPE_STEPS[stepIndex].title} — ${Math.round(pct * 100)}%`;
-    
+    if (globalProgressFill) globalProgressFill.style.width = `${globalPct}%`;
+    if (progressText) progressText.textContent = `${PIPE_STEPS[stepIndex].title} — ${Math.round(pct * 100)}%`;
     if (elapsed >= durationMs) break;
     await raf();
   }
 }
 
-// ---------- runPipeline (updated with proper train animation flow) ----------
+// ---------- runPipeline ----------
 async function runPipeline() {
-  if (simState.running || analysisCompleted) return; // Check completion flag
+  if (simState.running || analysisCompleted) return;
   if (uploadedFiles.length === 0) { 
     alert('Please upload at least one file (or use Demo Data).'); 
     return; 
@@ -347,13 +360,13 @@ async function runPipeline() {
   simState.running = true; 
   simState.paused = false; 
   simState.cancelled = false;
-  btnPause.disabled = false; 
-  btnCancel.disabled = false; 
-  btnToResults.disabled = true;
-  globalProgressFill.style.width = '0%';
-  progressText.textContent = 'Starting analysis...';
+  btnPause && (btnPause.disabled = false);
+  btnCancel && (btnCancel.disabled = false);
+  btnToResults && (btnToResults.disabled = true);
+  if (globalProgressFill) globalProgressFill.style.width = '0%';
+  if (progressText) progressText.textContent = 'Starting analysis...';
 
-  const cars = Array.from(pipelineContainer.querySelectorAll('.pipeline-step'));
+  const cars = Array.from(pipelineContainer ? pipelineContainer.querySelectorAll('.pipeline-step') : []);
   if (!cars.length) buildVisualPipeline();
 
   try {
@@ -361,19 +374,13 @@ async function runPipeline() {
       if (simState.cancelled) throw new Error('cancelled');
 
       const duration = PIPE_STEPS[i].duration || 1000;
-      
-      // Animate so this step is centered and remains there for the entire processing duration
       await animateToStep(i, duration);
 
-      // Mark as completed while it is still centered
       const car = document.querySelector(`#pipeline-container .pipeline-step[data-step-index="${i}"]`);
       if (car) {
         car.classList.remove('active');
         car.classList.add('completed');
-        
-        const statusEl = car.querySelector('.step-status');
-        if (statusEl) statusEl.textContent = 'Complete';
-        
+        const statusEl = car.querySelector('.step-status'); if (statusEl) statusEl.textContent = 'Complete';
         const iconI = car.querySelector('.step-icon i');
         if (iconI) {
           iconI.classList.remove('fa-spinner', 'fa-spin');
@@ -381,72 +388,57 @@ async function runPipeline() {
         }
       }
 
-      // Keep it centered briefly so user sees "complete" at center
       await new Promise(r => setTimeout(r, 400));
 
-      // Then slide train so the completed box shifts left and the next box can arrive to center
       if (i + 1 < PIPE_STEPS.length) {
-        // Center the next step (this will visually move the completed box left)
-        positionTrain(i + 1, 600); // Longer transition for smooth train movement
-        
-        // Update classes: mark all <= i as completed, i+1 as active
+        positionTrain(i + 1, 600);
         document.querySelectorAll('#pipeline-container .pipeline-step').forEach((c, idx) => {
           c.classList.toggle('completed', idx <= i);
           c.classList.toggle('active', idx === i + 1);
         });
-        
-        // Wait for the shift animation to complete
         await new Promise(r => setTimeout(r, 350));
       } else {
-        // Last step completed: keep final state
         positionTrain(i, 420);
       }
-
-      // Small pause before next iteration
       await new Promise(r => setTimeout(r, 100));
     }
 
-    // Analysis finished
-    globalProgressFill.style.width = '100%';
-    progressText.textContent = 'Analysis complete — results ready.';
-    btnToResults.disabled = false;
-    btnPause.disabled = true;
-    btnCancel.disabled = true;
+    if (globalProgressFill) globalProgressFill.style.width = '100%';
+    if (progressText) progressText.textContent = 'Analysis complete — results ready.';
+    btnToResults && (btnToResults.disabled = false);
+    btnPause && (btnPause.disabled = true);
+    btnCancel && (btnCancel.disabled = true);
     simState.running = false;
-    analysisCompleted = true; // Set completion flag
+    analysisCompleted = true;
 
-    // Render CSV preview only on analysis page
     const csv = makeCSV(250);
     renderCSVPreviewFromString(csv, 200, 'analysis');
-    
+
   } catch (err) {
     if (err.message === 'cancelled') {
-      progressText.textContent = 'Cancelled';
+      if (progressText) progressText.textContent = 'Cancelled';
       resetPipelineUI();
     } else {
       console.error(err);
-      progressText.textContent = 'Error during analysis';
+      if (progressText) progressText.textContent = 'Error during analysis';
       resetPipelineUI();
     }
   }
 }
+
 // --------------------- Pipeline simulation engine (train flow) ---------------------
 let simState = { running:false, paused:false, cancelled:false };
 let analysisCompleted = false; // Add flag to track completion
 
 function resetPipelineUI() {
-  globalProgressFill.style.width = '0%';
-  progressText.textContent = 'Waiting to start...';
-  btnPause.disabled = true; btnCancel.disabled = true; btnToResults.disabled = true;
+  if (globalProgressFill) globalProgressFill.style.width = '0%';
+  if (progressText) progressText.textContent = 'Waiting to start...';
+  btnPause && (btnPause.disabled = true); btnCancel && (btnCancel.disabled = true); btnToResults && (btnToResults.disabled = true);
   simState = { running:false, paused:false, cancelled:false };
   
-  // clear completed/active classes and reset icons
   document.querySelectorAll('#pipeline-container .pipeline-step').forEach(el => {
     el.classList.remove('active','completed');
-    const s = el.querySelector('.step-status');
-    if (s) s.textContent = 'Pending';
-    
-    // reset icons to original state
+    const s = el.querySelector('.step-status'); if (s) s.textContent = 'Pending';
     const iconEl = el.querySelector('.step-icon i');
     if (iconEl) {
       iconEl.className = ''; // clear all classes
@@ -456,34 +448,32 @@ function resetPipelineUI() {
     }
   });
   
-  // remove CSV preview on Analysis page when resetting
   const existing = document.getElementById('csv-preview-container-analysis');
   if (existing) existing.remove();
   
-  // reset train position
   positionTrain(0, 0);
 }
 resetPipelineUI();
 
 // Pause / Cancel handlers
-btnPause.addEventListener('click', () => {
+btnPause && btnPause.addEventListener('click', () => {
   if (!simState.running) return;
   simState.paused = !simState.paused;
   btnPause.textContent = simState.paused ? 'Resume' : 'Pause';
   if (simState.paused) {
-    progressText.textContent = progressText.textContent.replace(' — ', ' (PAUSED) — ');
+    if (progressText) progressText.textContent = progressText.textContent.replace(' — ', ' (PAUSED) — ');
   } else {
-    progressText.textContent = progressText.textContent.replace(' (PAUSED) — ', ' — ');
+    if (progressText) progressText.textContent = progressText.textContent.replace(' (PAUSED) — ', ' — ');
   }
 });
 
-btnCancel.addEventListener('click', () => {
+btnCancel && btnCancel.addEventListener('click', () => {
   if (!simState.running) return;
   simState.cancelled = true;
 });
 
 // start/go to results button
-btnToResults.addEventListener('click', () => {
+btnToResults && btnToResults.addEventListener('click', () => {
   populateResults();
   navigate('results-page');
   setTimeout(() => setupTabs(), 100);
@@ -493,7 +483,6 @@ btnToResults.addEventListener('click', () => {
 function renderCSVPreviewFromString(csvString, maxRows = 200, targetLocation = 'analysis') {
   const lines = csvString.split('\n').filter(Boolean);
   if (!lines.length) return;
-  // parse CSV (simple quoted CSV parser)
   function parseLine(ln) {
     const cols = []; let cur = '', inQuotes = false;
     for (let i=0;i<ln.length;i++) {
@@ -510,7 +499,6 @@ function renderCSVPreviewFromString(csvString, maxRows = 200, targetLocation = '
   const dataRows = rows.slice(1, 1+maxRows);
 
   if (targetLocation !== 'analysis') return;
-  // create or replace container in analysis pipeline card
   let container = document.getElementById('csv-preview-container-analysis');
   if (!container) {
     container = document.createElement('div');
@@ -519,9 +507,15 @@ function renderCSVPreviewFromString(csvString, maxRows = 200, targetLocation = '
     container.style.marginTop = '16px';
     container.style.overflow = 'auto';
     container.style.maxHeight = '420px';
+    container.style.padding = '12px';
+    container.style.borderRadius = '8px';
+    container.style.background = getPanelBg();
     const pipelineCard = document.querySelector('#analysis-page .pipeline-card');
     if (pipelineCard) pipelineCard.appendChild(container);
-    else document.getElementById('analysis-page').appendChild(container);
+    else {
+      const analysisPage = document.getElementById('analysis-page');
+      analysisPage && analysisPage.appendChild(container);
+    }
   }
 
   // Build table
@@ -536,7 +530,7 @@ function renderCSVPreviewFromString(csvString, maxRows = 200, targetLocation = '
     th.textContent = h;
     th.style.padding = '8px'; th.style.textAlign = 'left'; th.style.fontWeight = '700';
     th.style.borderBottom = '1px solid rgba(255,255,255,0.06)'; th.style.fontSize = '12px';
-    th.style.color = 'var(--accent-strong)';
+    th.style.color = getTextColor();
     trh.appendChild(th);
   });
   thead.appendChild(trh); table.appendChild(thead);
@@ -550,7 +544,7 @@ function renderCSVPreviewFromString(csvString, maxRows = 200, targetLocation = '
       td.style.padding = '8px';
       td.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
       td.style.fontSize = '12px';
-      td.style.color = 'var(--muted)';
+      td.style.color = getTextColor();
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
@@ -574,16 +568,16 @@ function renderCSVPreviewFromString(csvString, maxRows = 200, targetLocation = '
 
 // --------------------- Results population & charts (kept minimal) ---------------------
 function populateResults() {
-  metricDna.textContent = DUMMY.overview.dnaCount;
-  metricTaxa.textContent = DUMMY.overview.taxaDetected;
-  metricNovel.textContent = DUMMY.overview.novelGroups;
+  metricDna && (metricDna.textContent = DUMMY.overview.dnaCount);
+  metricTaxa && (metricTaxa.textContent = DUMMY.overview.taxaDetected);
+  metricNovel && (metricNovel.textContent = DUMMY.overview.novelGroups);
 
-  metricShannon.textContent = DUMMY.diversity.shannon;
-  metricSimpson.textContent = DUMMY.diversity.simpson;
-  metricRichness.textContent = DUMMY.diversity.richness;
+  metricShannon && (metricShannon.textContent = DUMMY.diversity.shannon);
+  metricSimpson && (metricSimpson.textContent = DUMMY.diversity.simpson);
+  metricRichness && (metricRichness.textContent = DUMMY.diversity.richness);
 
-  speciesListEl.innerHTML = DUMMY.species.map(s => `<li>${s}</li>`).join('');
-  clusterGrid.innerHTML = DUMMY.clusters.map(c => `<div class="cluster"><strong>${c.id}</strong><div class="muted">${c.seq} seqs · ${c.reads} reads</div></div>`).join('');
+  if (speciesListEl) speciesListEl.innerHTML = DUMMY.species.map(s => `<li>${s}</li>`).join('');
+  if (clusterGrid) clusterGrid.innerHTML = DUMMY.clusters.map(c => `<div class="cluster"><strong>${c.id}</strong><div class="muted">${c.seq} seqs · ${c.reads} reads</div></div>`).join('');
   renderAbundanceChart();
   renderUMAPAnimation();
   if (typeof renderDiversityWidgets === 'function') renderDiversityWidgets();
@@ -591,17 +585,20 @@ function populateResults() {
 
 // Abundance chart (Plotly)
 function renderAbundanceChart() {
+  if (!abundanceChartEl) return;
   const y = DUMMY.abundance.map(r => r.Taxonomy);
   const x = DUMMY.abundance.map(r => r.Read_Count);
   const isLightMode = document.body.classList.contains('light');
-  const textColor = isLightMode ? '#0b1220' : '#ffffff';
-  const data = [{ x, y, type:'bar', orientation:'h', marker:{ color: 'rgba(139,99,255,0.9)' } }];
+  const textColor = getTextColor();
+  const barColor = isLightMode ? '#7d3cff' : '#8b63ff';
+  const data = [{ x, y, type:'bar', orientation:'h', marker:{ color: barColor } }];
   const layout = { margin:{t:30,l:220,r:40,b:60}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:textColor} };
-  if (abundanceChartEl) Plotly.newPlot(abundanceChartEl, data, layout, {responsive:true});
+  try { Plotly.react(abundanceChartEl, data, layout, {responsive:true}); } catch(e){ console.warn('plotly abundance error',e); }
 }
 
 // UMAP animation (synthetic)
 let umapInterval = null;
+let lastTraces = null;
 function renderUMAPAnimation() {
   if (!umapPlotEl) return;
   const clusters = DUMMY.clusters;
@@ -620,21 +617,23 @@ function renderUMAPAnimation() {
     const pts = points.filter(p => p.cluster === k);
     traces.push({ x: pts.map(p=>p.x), y: pts.map(p=>p.y), mode:'markers', type:'scatter', name:k, marker:{size:8, color:colors[i%colors.length], opacity:0.9} });
   });
-  const isLightMode = document.body.classList.contains('light');
-  const textColor = isLightMode ? '#0b1220' : '#ffffff';
+  lastTraces = traces;
+
+  const textColor = getTextColor();
   const layout = { margin:{t:30,l:20,r:20,b:20}, xaxis:{visible:false}, yaxis:{visible:false, scaleanchor:'x', scaleratio:1}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:textColor} };
-  Plotly.newPlot(umapPlotEl, traces, layout, {responsive:true});
+  try { Plotly.react(umapPlotEl, traces, layout, {responsive:true}); } catch(e){ console.warn('plotly umap render failed', e); }
   if (umapInterval) clearInterval(umapInterval);
   umapInterval = setInterval(() => {
+    if (!lastTraces) return;
     const update = { x: [], y: [] };
-    for(let ti=0; ti<traces.length; ti++){
-      const oldx = traces[ti].x; const oldy = traces[ti].y;
+    for(let ti=0; ti<lastTraces.length; ti++){
+      const oldx = lastTraces[ti].x; const oldy = lastTraces[ti].y;
       const newx = oldx.map(v => v + (Math.random()-0.5)*0.06);
       const newy = oldy.map(v => v + (Math.random()-0.5)*0.06);
-      traces[ti].x = newx; traces[ti].y = newy;
+      lastTraces[ti].x = newx; lastTraces[ti].y = newy;
       update.x.push(newx); update.y.push(newy);
     }
-    Plotly.update(umapPlotEl, update, {}, traces.map((_,i)=>i));
+    try { Plotly.update(umapPlotEl, update, {}, lastTraces.map((_,i)=>i)); } catch(e) {}
   }, 300);
 }
 
@@ -644,7 +643,6 @@ function renderDiversityWidgets() {
   const evennessPct = Math.min(1, shannon / 6.0);
   const isLightMode = document.body.classList.contains('light');
   
-  // Updated donut chart with proper background
   const donutData = [{ 
     values: [evennessPct, 1-evennessPct], 
     labels: ['Evenness','Remaining'], 
@@ -667,17 +665,15 @@ function renderDiversityWidgets() {
   }
   dv.innerHTML = `<div id="div-donut" style="width:160px;height:160px"></div><div id="div-spark" style="flex:1; min-height:70px"></div>`;
   
-  // Donut chart with proper background
   const donutLayout = {
     showlegend: false,
     margin: {t:10,b:10,l:10,r:10},
-    paper_bgcolor: isLightMode ? '#ffffff' : '#1a1a1a',
-    plot_bgcolor: isLightMode ? '#ffffff' : '#ffffffff',
-    font: { color: isLightMode ? '#0b1220' : '#ffffff' }
+    paper_bgcolor: getPanelBg(),
+    plot_bgcolor: getPanelBg(),
+    font: { color: getTextColor() }
   };
-  Plotly.react(document.getElementById('div-donut'), donutData, donutLayout, {responsive:true});
+  try { Plotly.react(document.getElementById('div-donut'), donutData, donutLayout, {responsive:true}); } catch(e){ console.warn('div donut failed',e); }
   
-  // Spark line chart with visible axes in dark mode
   const sparkX = ['S1','S2','S3','S4','S5','S6','S7','S8']; 
   const sparkY = [5.12,4.8,5.0,4.6,5.3,4.9,5.0,5.15];
   const spark = [{ 
@@ -695,22 +691,22 @@ function renderDiversityWidgets() {
       showgrid: true,
       zeroline: false,
       gridcolor: isLightMode ? '#e0e0e0' : '#333333',
-      tickfont: { color: isLightMode ? '#0b1220' : '#ffffff' },
+      tickfont: { color: getTextColor() },
       showticklabels: true
     }, 
     yaxis: {
       showgrid: true,
       zeroline: false,
       gridcolor: isLightMode ? '#e0e0e0' : '#333333',
-      tickfont: { color: isLightMode ? '#0b1220' : '#ffffff' },
+      tickfont: { color: getTextColor() },
       showticklabels: true
     }, 
-    paper_bgcolor: isLightMode ? '#ffffff' : '#1a1a1a',
-    plot_bgcolor: isLightMode ? '#ffffff' : '#1a1a1a',
-    font: { color: isLightMode ? '#0b1220' : '#ffffff' }
+    paper_bgcolor: getPanelBg(),
+    plot_bgcolor: getPanelBg(),
+    font: { color: getTextColor() }
   };
   
-  Plotly.react(document.getElementById('div-spark'), spark, sparkLayout, {responsive:true});
+  try { Plotly.react(document.getElementById('div-spark'), spark, sparkLayout, {responsive:true}); } catch(e){ console.warn('div spark failed', e); }
 }
 
 // --------------------- Abundance filter CSV ---------------------
@@ -723,10 +719,9 @@ downloadFilterBtn && downloadFilterBtn.addEventListener('click', () => {
 });
 
 // --------------------- Hook up start button + download final ---------------------
-startAnalysisBtn.disabled = true;
-btnPause.disabled = true; btnCancel.disabled = true; btnToResults.disabled = true;
+startAnalysisBtn && (startAnalysisBtn.disabled = true);
+btnPause && (btnPause.disabled = true); btnCancel && (btnCancel.disabled = true); btnToResults && (btnToResults.disabled = true);
 
-// Fix: Make sure start analysis button works properly
 if (startAnalysisBtn) {
   startAnalysisBtn.addEventListener('click', () => {
     console.log('Start analysis clicked, files:', uploadedFiles.length);
@@ -740,47 +735,38 @@ if (startAnalysisBtn) {
     }
     resetPipelineUI();
     navigate('analysis-page');
-    // Small delay to ensure page transition completes
-    setTimeout(() => {
-      runPipeline();
-    }, 300);
+    setTimeout(() => { runPipeline(); }, 300);
   });
 }
 
-// Fix: Ensure fast sim button works  
 if (fastSimBtn) {
   fastSimBtn.addEventListener('click', () => {
-    console.log('Fast sim clicked'); // Debug log
+    console.log('Fast sim clicked');
     uploadedFiles = [{ name: 'demo_sample.fastq', size: 1500000 }]; 
     renderFileList(); 
-    // Auto-start analysis after a short delay
-    setTimeout(() => {
-      if (startAnalysisBtn && !startAnalysisBtn.disabled) {
-        startAnalysisBtn.click();
-      }
-    }, 250);
+    setTimeout(() => { if (startAnalysisBtn && !startAnalysisBtn.disabled) startAnalysisBtn.click(); }, 250);
   });
 }
 
-// if (downloadFinalBtn) {
-//   downloadFinalBtn.addEventListener('click', () => {
-//     const csv = makeCSV(250);
-//     downloadCSV('edna_final_report.csv', csv);
-//   });
-// }
+if (downloadFinalBtn) {
+  downloadFinalBtn.addEventListener('click', () => {
+    const csv = makeCSV(250);
+    downloadCSV('edna_final_report.csv', csv);
+  });
+}
 
 // Initial render of results preview data & file-list
 function initialPopulate() {
   renderFileList();
-  populateResults(); // pre-populate results KPIs (charts lazy)
+  populateResults();
 }
 initialPopulate();
 
 // wire file handlers to keep consistent
-fileInput.addEventListener('change', (e) => { uploadedFiles = Array.from(e.target.files); renderFileList(); });
-dropzone.addEventListener('drop', (e) => { e.preventDefault(); uploadedFiles = Array.from(e.dataTransfer.files); renderFileList(); });
+fileInput && fileInput.addEventListener('change', (e) => { uploadedFiles = Array.from(e.target.files); renderFileList(); });
+dropzone && dropzone.addEventListener('drop', (e) => { e.preventDefault(); uploadedFiles = Array.from(e.dataTransfer.files); renderFileList(); });
 
-// Setup tabs for results
+// Setup tabs for results (single definition)
 function setupTabs() {
   const tabButtons = document.querySelectorAll('.tab[data-tab]');
   const tabContents = document.querySelectorAll('.tab-content');
@@ -804,32 +790,3 @@ setupTabs();
 
 // cleanup on unload
 window.addEventListener('beforeunload', () => { if (umapInterval) clearInterval(umapInterval); });
-// wire file handlers to keep consistent
-fileInput.addEventListener('change', (e) => { uploadedFiles = Array.from(e.target.files); renderFileList(); });
-dropzone.addEventListener('drop', (e) => { e.preventDefault(); uploadedFiles = Array.from(e.dataTransfer.files); renderFileList(); });
-
-// Setup tabs for results
-function setupTabs() {
-  const tabButtons = document.querySelectorAll('.tab[data-tab]');
-  const tabContents = document.querySelectorAll('.tab-content');
-  tabButtons.forEach(button => {
-    const newButton = button.cloneNode(true);
-    button.parentNode.replaceChild(newButton, button);
-  });
-  const freshTabButtons = document.querySelectorAll('.tab[data-tab]');
-  freshTabButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const targetTab = this.dataset.tab;
-      freshTabButtons.forEach(btn => btn.classList.remove('active'));
-      tabContents.forEach(content => content.classList.remove('active'));
-      this.classList.add('active');
-      const targetContent = document.getElementById(`tab-${targetTab}`);
-      if (targetContent) targetContent.classList.add('active');
-    });
-  });
-}
-setupTabs();
-
-// cleanup on unload
-window.addEventListener('beforeunload', () => { if (umapInterval) clearInterval(umapInterval); });
-
