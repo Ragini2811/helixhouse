@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Helix House · eDNA </title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Plotly for charts -->
+  <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark">
+  <header class="navbar">
+    <div class="brand">
+      <img src="HOUSE.png" alt="Logo" class="logo-img" style="height: 60px; width: auto;">
+      <img src="HELIXHOUSE.png" alt="Logo" class="logo-img" style="height: 30px; width: auto;">
+    </div>
+
+    <nav class="nav-right">
+      <a class="nav-link active" data-page="home-page"><i class="fas fa-house"></i> Home</a>
+      <a class="nav-link" data-page="upload-page"><i class="fas fa-upload"></i> Upload</a>
+      <a class="nav-link" data-page="analysis-page"><i class="fas fa-project-diagram"></i> Analysis</a>
+      <a class="nav-link" data-page="results-page"><i class="fas fa-chart-pie"></i> Results</a>
+      <button id="theme-toggle" class="btn icon" title="Toggle theme"><i class="fas fa-sun"></i></button>
+      <a href="https://github.com/sangsaist/sih-edna-classifier" target="_blank" class="btn icon" title="View on GitHub">
+        <img src="github.png" alt="GitHub" style="width: 30px; height: 30px;">
+      </a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- HOME -->
+    <section id="home-page" class="page active">
+      <!-- HERO SECTION -->
+      <div class="hero-banner">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <i class="fas fa-microscope"></i>
+            <span>Next-Generation eDNA Analysis</span>
+          </div>
+          
+          <h1 class="hero-title">
+            Unlock Environmental Insights with 
+            <span class="gradient-text">AI-Powered DNA Analysis</span>
+          </h1>
+          
+          <p class="hero-description">
+            Transform raw environmental DNA sequences into actionable biodiversity insights using advanced BERT embeddings, 
+            machine learning classification, and interactive visualizations. Discover, analyze, and report with confidence.
+          </p>
+          
+          <div class="hero-actions">
+            <button class="btn-hero primary" onclick="navigate('upload-page')">
+              <i class="fas fa-rocket"></i>
+              Start Your Analysis
+            </button>
+
+          </div>
+          
+
+        </div>
+        
+        <div class="hero-visual">
+          <div class="marine-scene">
+            <div class="ocean-background">
+              <div class="wave wave-1"></div>
+              <div class="wave wave-2"></div>
+              <div class="wave wave-3"></div>
+            </div>
+            <div class="marine-life">
+              <div class="fish fish-1">🐠</div>
+              <div class="fish fish-2">🐟</div>
+              <div class="fish fish-3">🐡</div>
+              <div class="seaweed seaweed-1">🦀</div>
+              <div class="seaweed seaweed-2">🪸</div>
+              <div class="bubbles">
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+              </div>
+              <div class="coral">🦑</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FEATURES SECTION -->
+      <div class="features-section">
+        <div class="section-header">
+          <h2>Powerful Features for Comprehensive Analysis</h2>
+          <p>Advanced AI algorithms meet intuitive design for professional eDNA research</p>
+        </div>
+        
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+            <h3>BERT Embeddings</h3>
+            <p>State-of-the-art transformer models convert DNA sequences into rich, contextual vector representations for superior classification accuracy.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-robot"></i>
+            </div>
+            <h3>Machine Learning Classification</h3>
+            <p>Advanced neural networks provide probabilistic taxonomic assignments with confidence scores and uncertainty quantification.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-project-diagram"></i>
+            </div>
+            <h3>Unsupervised Discovery</h3>
+            <p>HDBSCAN clustering reveals potential novel taxa and previously unknown biodiversity patterns in your samples.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Biodiversity Metrics</h3>
+            <p>Calculate Shannon, Simpson indices and species richness with interactive visualizations and statistical summaries.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-cube"></i>
+            </div>
+            <h3>UMAP Visualization</h3>
+            <p>Dimensionality reduction creates intuitive 2D representations of high-dimensional sequence embeddings and clusters.</p>
+          </div>
+          
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-file-export"></i>
+            </div>
+            <h3>Professional Reports</h3>
+            <p>Export publication-ready CSV files with taxonomic assignments, confidence scores, and comprehensive metadata.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- WORKFLOW SECTION -->
+      <div class="workflow-section">
+        <div class="section-header">
+          <h2>Simple 4-Step Analysis Workflow</h2>
+          <p>From raw sequences to actionable insights in minutes</p>
+        </div>
+        
+        <div class="workflow-timeline">
+          <div class="workflow-step">
+            <div class="step-indicator">
+              <div class="step-number">1</div>
+              <div class="step-connector"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-icon">
+                <i class="fas fa-upload"></i>
+              </div>
+              <h3>Upload & Validate</h3>
+              <p>Upload FASTQ or CSV files containing environmental DNA sequences. Our system automatically validates and preprocesses your data for optimal analysis.</p>
+            </div>
+          </div>
+          
+          <div class="workflow-step">
+            <div class="step-indicator">
+              <div class="step-number">2</div>
+              <div class="step-connector"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-icon">
+                <i class="fas fa-cogs"></i>
+              </div>
+              <h3>AI Processing</h3>
+              <p>Advanced BERT embeddings and machine learning models analyze your sequences, generating taxonomic predictions with confidence scores.</p>
+            </div>
+          </div>
+          
+          <div class="workflow-step">
+            <div class="step-indicator">
+              <div class="step-number">3</div>
+              <div class="step-connector"></div>
+            </div>
+            <div class="step-content">
+              <div class="step-icon">
+                <i class="fas fa-search"></i>
+              </div>
+              <h3>Discovery & Analysis</h3>
+              <p>Unsupervised clustering reveals novel taxa while biodiversity metrics provide comprehensive ecological insights.</p>
+            </div>
+          </div>
+          
+          <div class="workflow-step">
+            <div class="step-indicator">
+              <div class="step-number">4</div>
+            </div>
+            <div class="step-content">
+              <div class="step-icon">
+                <i class="fas fa-chart-bar"></i>
+              </div>
+              <h3>Results & Export</h3>
+              <p>Interactive visualizations and professional CSV reports ready for publication or further research collaboration.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA SECTION -->
+      <div class="cta-section">
+        <div class="cta-content">
+          <h2>Ready to Revolutionize Your eDNA Research?</h2>
+          <p>Join researchers worldwide who trust Rexi for cutting-edge environmental DNA analysis. Start your journey into AI-powered biodiversity discovery today.</p>
+          
+          <div class="cta-actions">
+            <button class="btn-hero primary large" onclick="navigate('upload-page')">
+              <i class="fas fa-rocket"></i>
+              Begin Analysis Now
+            </button>
+
+          </div>
+          
+          <div class="cta-features">
+            <div class="cta-feature">
+              <i class="fas fa-shield-check"></i>
+              <span>Secure & Private</span>
+            </div>
+            <div class="cta-feature">
+              <i class="fas fa-lightning-bolt"></i>
+              <span>Lightning Fast</span>
+            </div>
+            <div class="cta-feature">
+              <i class="fas fa-graduation-cap"></i>
+              <span>Research Grade</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+</section>
+<!-- END HOME -->
+
+<!-- UPLOAD -->
+    <section id="upload-page" class="page" >
+
+      <h2 class="section-title">Upload environmental DNA data</h2>
+        <center>
+      <div class="card upload-panel" style="border-left:450px">
+        <div class="upload-left">
+          <div id="dropzone" class="dropzone" tabindex="0">
+            <input type="file" id="dna-file-upload" accept=".fastq,.fq,.csv" multiple hidden>
+            <div class="drop-inner">
+              <i class="fas fa-file-circle-plus big"></i>
+              <p>Click or drag FASTQ / CSV files here</p>
+              <small class="muted">Accepted: .fastq, .fq, .csv </small>
+              <div class="upload-actions" style="margin-top:12px">
+                <button class="btn ghost" id="browse-btn">Browse files</button>
+                <button class="btn outlined" id="clear-files">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="file-list" class="file-list card" style="margin-top:14px">
+            <p class="muted">No files selected.</p>
+          </div>
+
+          <div class="analyze-actions" style="margin-top:12px">
+            <button class="btn primary" id="start-analysis-btn" disabled><i class="fas fa-play"></i> Analyze Data</button>
+          </div>
+        </div>
+        </center>
+
+        
+    </section>
+
+    <!-- ANALYSIS -->
+    <section id="analysis-page" class="page">
+      <h2 class="section-title">Analysis Pipeline</h2>
+      <div class="card pipeline-card">
+        <div id="pipeline-container" class="pipeline-container">
+          <!-- Train-like animated pipeline steps -->
+          <div class="pipeline-step" data-step="0">
+            <div class="step-icon">
+              <i class="fas fa-upload"></i>
+            </div>
+            <h4>Data Upload</h4>
+            <p>Processing input files</p>
+          </div>
+          
+          <div class="pipeline-step" data-step="1">
+            <div class="step-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+            <h4>BERT Analysis</h4>
+            <p>AI sequence embedding</p>
+          </div>
+          
+          <div class="pipeline-step" data-step="2">
+            <div class="step-icon">
+              <i class="fas fa-project-diagram"></i>
+            </div>
+            <h4>Classification</h4>
+            <p>Taxonomic prediction</p>
+          </div>
+          
+          <div class="pipeline-step" data-step="3">
+            <div class="step-icon">
+              <i class="fas fa-chart-bar"></i>
+            </div>
+            <h4>Results</h4>
+            <p>Generating reports</p>
+          </div>
+        </div>
+
+        <div class="pipeline-controls" style="margin-top:14px">
+          <div class="progress-wrap">
+            <div id="global-progress" class="global-progress">
+              <div id="global-progress-fill" class="global-progress-fill"></div>
+            </div>
+            <div id="progress-text" class="progress-text">Waiting to start...</div>
+          </div>
+
+          <div class="controls">
+            <button id="btn-pause" class="btn ghost" disabled>Pause</button>
+            <button id="btn-cancel" class="btn outlined" disabled>Cancel</button>
+            <button id="btn-to-results" class="btn primary" disabled>Go to Results</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="results-page" class="page">
+      <h2 class="section-title">Analysis Results</h2>
+
+      <div class="card results-card">
+        <div class="tabs">
+          <button class="tab active" data-tab="overview">Overview</button>
+          <button class="tab" data-tab="diversity">Diversity</button>
+          <button class="tab" data-tab="taxonomy">Taxonomy</button>
+          <button class="tab" data-tab="novel">Novel Taxa</button>
+        </div>
+
+        <div class="tab-contents">
+          <div id="tab-overview" class="tab-content active">
+            
+            <div class="metrics-grid">
+              <div class="kpi card"><small>DNA Sequences</small><strong id="metric-dna-count">0</strong></div>
+              <div class="kpi card"><small>Taxa Detected</small><strong id="metric-taxa-detected">0</strong></div>
+              <div class="kpi card"><small>Novel Groups</small><strong id="metric-novel-groups">0</strong></div>
+              </div>
+
+            <div class="abundance card" style="margin-top:12px">
+              <h4>Top taxa :</h4>
+              <div id="abundance-chart" style="height:340px;"></div>
+              <div class="table-download" style="margin-top:12px">
+              </div>
+            </div>
+            <div class="explanation-box">
+              <h3><i class="fas fa-info-circle"></i> Overview Explanation</h3>
+              <ul>
+                <li><strong>DNA Sequences:</strong> Total number of genetic sequences analyzed from your environmental sample</li>
+                <li><strong>Taxa Detected:</strong> Number of different species/organisms identified through AI classification</li>
+                <li><strong>Novel Groups:</strong> Potential new species that don't match existing databases</li>
+              </ul>
+              <p>The abundance chart below shows which species are most common in your sample, helping you understand the dominant organisms in your environment.</p>
+            </div>
+          </div>
+
+          <div id="tab-diversity" class="tab-content">
+            
+            <div class="indices" style="margin-top:6px">
+              <div class="index card"><small>Variety and Evenness Score<br><small>Shannon Index (H)</small></small><strong id="metric-shannon">0.00</strong></div>
+              <div class="index card"><small>Dominance-Free Score<br><small>Simpson Index (λ)</small></small><strong id="metric-simpson">0.00</strong></div>
+              <div class="index card"><small>Species Richness (S)</small><strong id="metric-richness">0</strong></div>
+            </div>
+            <div class="explanation-box">
+              <h3><i class="fas fa-chart-line"></i> Biodiversity Indices Explanation</h3>
+              
+              <!-- Chart Explanations -->
+              <div class="chart-explanations-row" style="margin-bottom: 20px;">
+                <div class="chart-explanation-box">
+                  <h4><i class="fas fa-chart-pie"></i> The Circle Chart</h4>
+                  <p>The purple portion represents the variety of species present.</p>
+                </div>
+                
+                <div class="chart-explanation-box">
+                  <h4><i class="fas fa-chart-line"></i> The Line Graph</h4>
+                  <p><strong>The x-axis :</strong> different samples or sites.</p>
+                  <p><strong>The y-axis :</strong> the diversity score at each site.</p>
+                  <p>A higher point means more diversity at that site, while a lower point means less diversity.</p>
+                </div>
+              </div>
+              
+             <div class="index-explanations">
+                <div class="index-explanation">
+                  <h4>Shannon Index (H)</h4>
+                  <p>This shows how mixed the species are. A high score means there are many different species, and they exist in good balance.</p>
+                </div>
+                <div class="index-explanation">
+                  <h4>Simpson Index (λ)</h4>
+                  <p>This shows the chance of picking two different species randomly. If the score is close to 1, it means there is a lot of variety.</p>
+                </div>
+                <div class="index-explanation">
+                  <h4>Species Richness (S)</h4>
+                  <p>This is simply the count of different species present.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="tab-taxonomy" class="tab-content">
+            
+            <h4 class="taxonomy-section-title">Taxonomic Hierarchy</h4>
+            <div class="taxonomy-grid">
+              <div><div>Phylum</div><strong id="tax-phylum">18</strong></div>
+              <div><div>Class</div><strong id="tax-class">55</strong></div>
+              <div><div>Order</div><strong id="tax-order">150</strong></div>
+              <div><div>Family</div><strong id="tax-family">410</strong></div>
+              <div><div>Genus</div><strong id="tax-genus">980</strong></div>
+              <div><div>Species</div><strong id="tax-species">1830</strong></div>
+            </div>
+
+            <h4 class="taxonomy-section-title">Top Species</h4>
+            <ul id="species-list" class="species-list"></ul>
+
+            <div class="explanation-box">
+              <h3><i class="fas fa-sitemap"></i> Taxonomic Classification Explanation</h3>
+              <p>Taxonomy organizes life into a hierarchical system from broad to specific categories. Our AI system classified your organisms using this standard biological hierarchy:</p>
+              <div class="taxonomy-explanation">
+                <p><strong>Phylum → Class → Order → Family → Genus → Species</strong></p>
+                <p>Higher numbers at broader levels (Phylum, Class) indicate greater evolutionary diversity in your sample. The species count shows the total number of different organisms identified.</p>
+              </div>
+            </div>
+          </div>
+
+          <div id="tab-novel" class="tab-content">
+            
+            <h4 class="taxonomy-section-title">Potential Novel Taxa</h4>
+            <p class="muted">Clusters that did not align to reference databases — candidate novel groups for follow-up investigation.</p>
+            <div id="novel-clusters" class="cluster-grid" style="margin-top:16px"></div>
+            <h4 class="taxonomy-section-title" style="margin-top:24px">UMAP Visualization</h4>
+            <div id="umap-plot" style="height:380px; margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.08);"></div>
+            <div class="explanation-box">
+              <h3><i class="fas fa-search"></i> Novel Taxa Discovery Explanation</h3>
+              <div class="novel-explanation">
+                <h4>What are Novel Taxa?</h4>
+                <p>Novel taxa are genetic sequences that don't closely match any known species in reference databases. This could indicate:</p>
+                
+                <h4>UMAP Visualization</h4>
+                <p>Clusters represent groups of related Sequences. Colors typically represent different taxonomic groups or confidence levels.</p>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+
+        <div class="results-bottom" style="margin-top:14px; text-align:right">
+          <button id="download-final" class="btn primary"><i class="fas fa-file-csv"></i> Download Final CSV Report</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
+</html>
