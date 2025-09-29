@@ -3,15 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <head>
-  <title>Helix House · eDNA</title>
-  <link rel="icon" type="image/png" href="HOUSE.png">
-</head>
-
+  <title>Helix House · eDNA </title>
 
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
+  <!-- Plotly for charts -->
   <script src="https://cdn.plot.ly/plotly-2.24.2.min.js"></script>
 
   <link rel="stylesheet" href="style.css">
@@ -19,7 +15,7 @@
 <body class="dark">
   <header class="navbar">
     <div class="brand">
-      <img src="HOUSE.png" alt="Logo" class="logo-img" style="height: 60px; width: auto;">
+      <img src="HOUSE.png" alt="Logo" class="logo-img clickable-logo" data-page="home-page" style="height: 60px; width: auto; cursor: pointer;">
       <img src="HELIXHOUSE.png" alt="Logo" class="logo-img" style="height: 30px; width: auto;">
     </div>
 
@@ -29,7 +25,7 @@
       <a class="nav-link" data-page="analysis-page"><i class="fas fa-project-diagram"></i> Analysis</a>
       <a class="nav-link" data-page="results-page"><i class="fas fa-chart-pie"></i> Results</a>
       <button id="theme-toggle" class="btn icon" title="Toggle theme"><i class="fas fa-sun"></i></button>
-      <a href="https://github.com/sangsaist/HelixHouse" target="_blank" class="btn icon" title="View on GitHub">
+      <a href="https://github.com/sangsaist/sih-edna-classifier" target="_blank" class="btn icon" title="View on GitHub">
         <img src="github.png" alt="GitHub" style="width: 30px; height: 30px;">
       </a>
     </nav>
@@ -276,6 +272,7 @@
 
           <div class="analyze-actions" style="margin-top:12px">
             <button class="btn primary" id="start-analysis-btn" disabled><i class="fas fa-play"></i> Analyze Data</button>
+            <button class="btn outlined" id="fast-sim" style="margin-left:12px"><i class="fas fa-flask"></i> Demo</button>
           </div>
         </div>
         </center>
@@ -288,45 +285,12 @@
       <h2 class="section-title">Analysis Pipeline</h2>
       <div class="card pipeline-card">
         <div id="pipeline-container" class="pipeline-container">
-          <!-- Train-like animated pipeline steps -->
-          <div class="pipeline-step" data-step="0">
-            <div class="step-icon">
-              <i class="fas fa-upload"></i>
-            </div>
-            <h4>Data Upload</h4>
-            <p>Processing input files</p>
-          </div>
-          
-          <div class="pipeline-step" data-step="1">
-            <div class="step-icon">
-              <i class="fas fa-brain"></i>
-            </div>
-            <h4>BERT Analysis</h4>
-            <p>AI sequence embedding</p>
-          </div>
-          
-          <div class="pipeline-step" data-step="2">
-            <div class="step-icon">
-              <i class="fas fa-project-diagram"></i>
-            </div>
-            <h4>Classification</h4>
-            <p>Taxonomic prediction</p>
-          </div>
-          
-          <div class="pipeline-step" data-step="3">
-            <div class="step-icon">
-              <i class="fas fa-chart-bar"></i>
-            </div>
-            <h4>Results</h4>
-            <p>Generating reports</p>
-          </div>
+          <!-- JS builds steps here -->
         </div>
 
         <div class="pipeline-controls" style="margin-top:14px">
           <div class="progress-wrap">
-            <div id="global-progress" class="global-progress">
-              <div id="global-progress-fill" class="global-progress-fill"></div>
-            </div>
+            <div id="global-progress" class="global-progress"><div id="global-progress-fill" class="global-progress-fill"></div></div>
             <div id="progress-text" class="progress-text">Waiting to start...</div>
           </div>
 
@@ -364,16 +328,21 @@
               <h4>Top taxa :</h4>
               <div id="abundance-chart" style="height:340px;"></div>
               <div class="table-download" style="margin-top:12px">
-              </div>
+                </div>
             </div>
             <div class="explanation-box">
-              <h3><i class="fas fa-info-circle"></i> Overview Explanation</h3>
-              <ul>
-                <li><strong>DNA Sequences:</strong> Total number of genetic sequences analyzed from your environmental sample</li>
-                <li><strong>Taxa Detected:</strong> Number of different species/organisms identified through AI classification</li>
-                <li><strong>Novel Groups:</strong> Potential new species that don't match existing databases</li>
-              </ul>
-              <p>The abundance chart below shows which species are most common in your sample, helping you understand the dominant organisms in your environment.</p>
+              <h3 class="explanation-toggle" onclick="toggleExplanation('overview-explanation')">
+                <i class="fas fa-info-circle"></i> Overview Explanation 
+                <i class="fas fa-chevron-down toggle-icon"></i>
+              </h3>
+              <div id="overview-explanation" class="explanation-content" style="display: none;">
+                <ul>
+                  <li><strong>DNA Sequences:</strong> Total number of genetic sequences analyzed from your environmental sample</li>
+                  <li><strong>Taxa Detected:</strong> Number of different species/organisms identified through AI classification</li>
+                  <li><strong>Novel Groups:</strong> Potential new species that don't match existing databases</li>
+                </ul>
+                <p>The abundance chart below shows which species are most common in your sample, helping you understand the dominant organisms in your environment.</p>
+              </div>
             </div>
           </div>
 
@@ -385,35 +354,27 @@
               <div class="index card"><small>Species Richness (S)</small><strong id="metric-richness">0</strong></div>
             </div>
             <div class="explanation-box">
-              <h3><i class="fas fa-chart-line"></i> Biodiversity Indices Explanation</h3>
-              
-              <!-- Chart Explanations -->
-              <div class="chart-explanations-row" style="margin-bottom: 20px;">
-                <div class="chart-explanation-box">
-                  <h4><i class="fas fa-chart-pie"></i> The Circle Chart</h4>
-                  <p>The purple portion represents the variety of species present.</p>
-                </div>
+              <h3 class="explanation-toggle" onclick="toggleExplanation('diversity-explanation')">
+                <i class="fas fa-chart-line"></i> Biodiversity Indices Explanation 
+                <i class="fas fa-chevron-down toggle-icon"></i>
+              </h3>
+              <div id="diversity-explanation" class="explanation-content" style="display: none;">
+                <!-- Chart Explanations -->
                 
-                <div class="chart-explanation-box">
-                  <h4><i class="fas fa-chart-line"></i> The Line Graph</h4>
-                  <p><strong>The x-axis :</strong> different samples or sites.</p>
-                  <p><strong>The y-axis :</strong> the diversity score at each site.</p>
-                  <p>A higher point means more diversity at that site, while a lower point means less diversity.</p>
-                </div>
-              </div>
-              
-             <div class="index-explanations">
-                <div class="index-explanation">
-                  <h4>Shannon Index (H)</h4>
-                  <p>This shows how mixed the species are. A high score means there are many different species, and they exist in good balance.</p>
-                </div>
-                <div class="index-explanation">
-                  <h4>Simpson Index (λ)</h4>
-                  <p>This shows the chance of picking two different species randomly. If the score is close to 1, it means there is a lot of variety.</p>
-                </div>
-                <div class="index-explanation">
-                  <h4>Species Richness (S)</h4>
-                  <p>This is simply the count of different species present.</p>
+                
+               <div class="index-explanations">
+                  <div class="index-explanation">
+                    <h4>Shannon Index (H)</h4>
+                    <p>This shows how mixed the species are. A high score means there are many different species, and they exist in good balance.</p>
+                  </div>
+                  <div class="index-explanation">
+                    <h4>Simpson Index (λ)</h4>
+                    <p>This shows the chance of picking two different species randomly. If the score is close to 1, it means there is a lot of variety.</p>
+                  </div>
+                  <div class="index-explanation">
+                    <h4>Species Richness (S)</h4>
+                    <p>This is simply the count of different species present.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -431,15 +392,22 @@
               <div><div>Species</div><strong id="tax-species">1830</strong></div>
             </div>
 
-            <h4 class="taxonomy-section-title">Top Species</h4>
-            <ul id="species-list" class="species-list"></ul>
+            <h4 class="taxonomy-section-title">Species</h4>
+            <div class="species-container">
+              <ul id="species-list" class="species-list"></ul>
+            </div>
 
             <div class="explanation-box">
-              <h3><i class="fas fa-sitemap"></i> Taxonomic Classification Explanation</h3>
-              <p>Taxonomy organizes life into a hierarchical system from broad to specific categories. Our AI system classified your organisms using this standard biological hierarchy:</p>
-              <div class="taxonomy-explanation">
-                <p><strong>Phylum → Class → Order → Family → Genus → Species</strong></p>
-                <p>Higher numbers at broader levels (Phylum, Class) indicate greater evolutionary diversity in your sample. The species count shows the total number of different organisms identified.</p>
+              <h3 class="explanation-toggle" onclick="toggleExplanation('taxonomy-explanation')">
+                <i class="fas fa-sitemap"></i> Taxonomic Classification Explanation 
+                <i class="fas fa-chevron-down toggle-icon"></i>
+              </h3>
+              <div id="taxonomy-explanation" class="explanation-content" style="display: none;">
+                <p>Taxonomy organizes life into a hierarchical system from broad to specific categories. Our AI system classified your organisms using this standard biological hierarchy:</p>
+                <div class="taxonomy-explanation">
+                  <p><strong>Phylum → Class → Order → Family → Genus → Species</strong></p>
+                  <p>Higher numbers at broader levels (Phylum, Class) indicate greater evolutionary diversity in your sample. The species count shows the total number of different organisms identified.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -447,18 +415,23 @@
           <div id="tab-novel" class="tab-content">
             
             <h4 class="taxonomy-section-title">Potential Novel Taxa</h4>
-            <p class="muted">Clusters that did not align to reference databases — candidate novel groups for follow-up investigation.</p>
+            <p class="muted"></p>
             <div id="novel-clusters" class="cluster-grid" style="margin-top:16px"></div>
             <h4 class="taxonomy-section-title" style="margin-top:24px">UMAP Visualization</h4>
             <div id="umap-plot" style="height:380px; margin-top:12px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.08);"></div>
             <div class="explanation-box">
-              <h3><i class="fas fa-search"></i> Novel Taxa Discovery Explanation</h3>
-              <div class="novel-explanation">
-                <h4>What are Novel Taxa?</h4>
-                <p>Novel taxa are genetic sequences that don't closely match any known species in reference databases. This could indicate:</p>
-                
-                <h4>UMAP Visualization</h4>
-                <p>Clusters represent groups of related Sequences. Colors typically represent different taxonomic groups or confidence levels.</p>
+              <h3 class="explanation-toggle" onclick="toggleExplanation('novel-explanation')">
+                <i class="fas fa-search"></i> Novel Taxa Discovery Explanation 
+                <i class="fas fa-chevron-down toggle-icon"></i>
+              </h3>
+              <div id="novel-explanation" class="explanation-content" style="display: none;">
+                <div class="novel-explanation">
+                  <h4>What are Novel Taxa?</h4>
+                  <p>Novel taxa are genetic sequences that don’t closely match any known species already identified.</p>
+                  
+                  <h4>UMAP Visualization</h4>
+                  <p>Clusters represent groups of related Sequences. Colors typically represent different taxonomic groups or confidence levels.</p>
+                </div>
               </div>
             </div>
           </div>
@@ -472,7 +445,22 @@
     </section>
   </main>
 
+  <script>
+    function toggleExplanation(id) {
+      const content = document.getElementById(id);
+      const toggle = content.previousElementSibling.querySelector('.toggle-icon');
+      
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+        toggle.classList.remove('fa-chevron-down');
+        toggle.classList.add('fa-chevron-up');
+      } else {
+        content.style.display = 'none';
+        toggle.classList.remove('fa-chevron-up');
+        toggle.classList.add('fa-chevron-down');
+      }
+    }
+  </script>
   <script src="script.js"></script>
 </body>
-</html>
 </html>
